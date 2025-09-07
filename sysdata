@@ -1,0 +1,79 @@
+#!/usr/bin/env python3.9
+
+import psutil
+import argparse
+import platform
+import time
+import humanize
+
+def basic_system_info():
+    print(f"Hostname: {platform.node()}")
+    print(f"OS Type: {platform.system()}")
+    print(f"Kernel: {platform.release()}")
+    non_readable_boottime = psutil.boot_time()
+    print(f"Boot Time: {time.ctime(non_readable_boottime)}")
+
+def cpu_info():
+    print(f"Total Cores: {psutil.cpu_count(logical=True)}")
+    print(f"Total CPU Usage: {psutil.cpu_percent()}%")
+    curent_cpu_freq = psutil.cpu_freq().current
+    print(f"CPU Frequency: {curent_cpu_freq} Mhz")
+
+def memory_info():
+    mem = psutil.virtual_memory()
+    print(f"Total Memory: {humanize.naturalsize(mem.total)}")
+    print(f"Used Memory: {humanize.naturalsize(mem.used)}")
+    print(f"Free Memory: {humanize.naturalsize(mem.available)}")
+    print(f"Memory Usage: {mem.percent}%")
+
+def swap_info():
+    swap = psutil.swap_memory()
+    print(f"Total Swap: {humanize.naturalsize(swap.total)}")
+    print(f"Used Swap: {humanize.naturalsize(swap.used)}")
+    print(f"Free Swap: {humanize.naturalsize(swap.free)}")
+    print(f"Swap Usage: {swap.percent}%")
+
+def disk_info():
+    partitions = psutil.disk_partitions()
+    for partition in partitions:
+        print(f"Device: {partition.device}")
+        print(f"Mountpoint: {partition.mountpoint}")
+        print(f"Filesystem: {partition.fstype}")
+        partition_usage = psutil.disk_usage(partition.mountpoint)
+        print(f"Total Size: {partition_usage.total}")
+        print(f"Used Size: {partition_usage.used}")
+        print(f"Free Size: {partition_usage.free}")
+        print(f"Usage: {partition_usage.percent}%")
+        print("------")
+
+def process_info():
+    n = 0
+    for proc in psutil.process_iter(['pid', 'name', 'username']):
+        n = n + 1
+        print(f"PID: {proc.info['pid']} | Process: {proc.info['name']} | User: {proc.info['username']}")
+    print(f"Total Processes: {n}")
+
+
+parser = argparse.ArgumentParser(description="Utility to get all system information",prog="sysdata")
+
+parser.add_argument("--basic","-b",help="display basic information about system",action='store_true')
+parser.add_argument("--cpu","-c",help="display cpu information",action='store_true')
+parser.add_argument("--memory","-m",help="display memory information",action='store_true')
+parser.add_argument("--swap","-s",help="display swap information",action='store_true')
+parser.add_argument("--disk","-d",help="display disk information",action='store_true')
+parser.add_argument("--process","-p",help="display process information",action='store_true')
+
+args = parser.parse_args()
+
+if args.basic:
+    basic_system_info()
+elif args.cpu:
+    cpu_info()
+elif args.memory:
+    memory_info()
+elif args.swap:
+    swap_info()
+elif args.disk:
+    disk_info()
+elif args.process:
+    process_info()
